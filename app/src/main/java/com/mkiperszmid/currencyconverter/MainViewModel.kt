@@ -5,25 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import java.math.BigDecimal
+import javax.inject.Inject
 
-class MainViewModel(
-    private val repo: MainRepository = MainRepositoryImpl(
-        httpClient = HttpClient(engineFactory = Android) {
-            install(ContentNegotiation) {
-                json(Json {
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                })
-            }
-        }
-    )
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val repo: MainRepository
 ) : ViewModel() {
     var state by mutableStateOf(MainState())
         private set
@@ -68,7 +57,7 @@ class MainViewModel(
                 .onSuccess {
                     state = state.copy(
                         rate = it.toBigDecimal()
-                      )
+                    )
                 }.onFailure {
                     state = state.copy(
                         errorMessage = it.message,
