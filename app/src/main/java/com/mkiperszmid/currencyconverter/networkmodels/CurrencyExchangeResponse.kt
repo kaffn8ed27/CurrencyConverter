@@ -1,9 +1,7 @@
-package com.mkiperszmid.currencyconverter
-
+package com.mkiperszmid.currencyconverter.networkmodels
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
 @Serializable
 data class CurrencyExchangeResponse(
     @SerialName("base")

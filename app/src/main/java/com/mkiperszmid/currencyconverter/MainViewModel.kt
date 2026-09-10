@@ -12,12 +12,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repo: MainRepository
+    private val repo: MainRepository,
+    private val reducer: CurrenciesReducer
 ) : ViewModel() {
     var state by mutableStateOf(MainState())
         private set
 
     init {
+        getCurrencies()
         getCurrencyExchange()
     }
 
@@ -37,6 +39,16 @@ class MainViewModel @Inject constructor(
         state = state.copy(amountToReceive = value)
     }
 
+    fun onCurrencyToConvertChange(currency: String) {
+        state = state.copy(currencyToConvert = currency)
+        getCurrencyExchange()
+    }
+
+    fun onCurrencyToReceiveChange(currency: String) {
+        state = state.copy(currencyToReceive = currency)
+        getCurrencyExchange()
+    }
+
     fun swapCurrencies() {
         val currencyTemp = state.currencyToConvert
         val amountTemp = state.amountToConvert
@@ -48,6 +60,22 @@ class MainViewModel @Inject constructor(
             currencyToReceive = currencyTemp
         )
         getCurrencyExchange()
+    }
+
+    private fun getCurrencies() {
+        state = state.copy(errorMessage = null)
+        viewModelScope.launch {
+            val response = repo.getCurrencies()
+            response.onSuccess {
+                state = state.copy(currencies = reducer.reduceCurrenciesResponse(it))
+            }
+                .onFailure {
+                    state = state.copy(
+                        errorMessage = it.message,
+                        currencies = emptyList()
+                    )
+                }
+        }
     }
 
     private fun getCurrencyExchange() {

@@ -3,6 +3,7 @@ package com.mkiperszmid.currencyconverter
 import java.math.BigDecimal
 
 data class MainState(
+    val currencies: List<String> = emptyList(),
     val amountToConvert: String = "",
     val currencyToConvert: String = "USD",
     val amountToReceive: String = "",
