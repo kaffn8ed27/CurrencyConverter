@@ -13,10 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.mkiperszmid.currencyconverter.ui.theme.CurrencyConverterTheme
@@ -37,7 +46,9 @@ class MainActivity : ComponentActivity() {
                         CurrencyItem(
                             value = state.amountToConvert,
                             currency = state.currencyToConvert,
+                            currencies = state.currencies,
                             onValueChange = viewModel::onAmountToConvertChange,
+                            onCurrencyChange = viewModel::onCurrencyToConvertChange,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Button(onClick = { viewModel.swapCurrencies() }, shape = CircleShape) {
@@ -46,7 +57,9 @@ class MainActivity : ComponentActivity() {
                         CurrencyItem(
                             value = state.amountToReceive,
                             currency = state.currencyToReceive,
+                            currencies = state.currencies,
                             onValueChange = viewModel::onAmountToReceiveChange,
+                            onCurrencyChange = viewModel::onCurrencyToReceiveChange,
                             modifier = Modifier.fillMaxWidth()
                         )
                         state.errorMessage?.let {
@@ -59,16 +72,44 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencyItem(
     value: String,
     currency: String,
+    currencies: List<String>,
     onValueChange: (String) -> Unit,
+    onCurrencyChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Row(modifier = modifier.fillMaxWidth()) {
-        Button(onClick = {}) {
-            Text(currency)
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            TextField(
+                value = currency,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                currencies.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onCurrencyChange(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
         }
         TextField(
             value = value,
