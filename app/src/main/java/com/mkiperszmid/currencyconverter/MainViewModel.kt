@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.net.UnknownHostException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -65,16 +66,17 @@ class MainViewModel @Inject constructor(
     private fun getCurrencies() {
         state = state.copy(errorMessage = null)
         viewModelScope.launch {
-            val response = repo.getCurrencies()
-            response.onSuccess {
+            repo.getCurrencies().collect {
                 state = state.copy(currencies = reducer.reduceCurrenciesResponse(it))
             }
-                .onFailure {
-                    state = state.copy(
-                        errorMessage = it.message,
-                        currencies = emptyList()
-                    )
-                }
+        }
+        viewModelScope.launch {
+            repo.refreshCurrencies().onFailure {
+                state = state.copy(
+                    errorMessage = it.message,
+                    currencies = emptyList()
+                )
+            }
         }
     }
 
@@ -87,8 +89,11 @@ class MainViewModel @Inject constructor(
                         rate = it.toBigDecimal()
                     )
                 }.onFailure {
+                    val errorMessage = if (it is UnknownHostException) {
+                        "It looks like you're offline."
+                    } else it.message
                     state = state.copy(
-                        errorMessage = it.message,
+                        errorMessage = errorMessage,
                         rate = null
                     )
                 }

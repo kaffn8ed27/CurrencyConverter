@@ -54,6 +54,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.android.compiler)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.bundles.room)
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.kotlinx.serialization)
     testImplementation(libs.junit)
